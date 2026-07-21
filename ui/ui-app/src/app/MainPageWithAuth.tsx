@@ -12,6 +12,7 @@ import {
     ExplorePage,
     GroupPage,
     NotFoundPage,
+    PromptPlaygroundPage,
     RootRedirectPage,
     GlobalContractRulesPage,
     RulesPage,
@@ -71,7 +72,10 @@ export const MainPageWithAuth: FunctionComponent<MainPageWithAuthProps> = () => 
                         <Route path="/search" element={ <SearchPage /> } />
                         <Route path="/drafts" element={ <DraftsPage /> } />
                         <Route path="/explore" element={ <ExplorePage /> } />
-                        <Route path="/agents" element={ <AgentsPage /> } />
+                        { config.featureAgents() && (
+                            <Route path="/agents" element={ <AgentsPage /> } />
+                        )}
+                        <Route path="/prompt-playground" element={ <PromptPlaygroundPage /> } />
 
                         <Route
                             path="/explore/:groupId"
