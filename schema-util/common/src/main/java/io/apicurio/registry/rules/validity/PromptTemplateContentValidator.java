@@ -3,6 +3,7 @@ package io.apicurio.registry.rules.validity;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.apicurio.registry.content.TypedContent;
 import io.apicurio.registry.content.util.ContentTypeUtil;
+import io.apicurio.registry.content.util.PromptTemplateUtil;
 import io.apicurio.registry.rest.v3.beans.ArtifactReference;
 import io.apicurio.registry.rules.violation.RuleViolation;
 import io.apicurio.registry.rules.violation.RuleViolationException;
@@ -16,8 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 /**
  * Content validator for Prompt Template artifacts.
@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public class PromptTemplateContentValidator extends AbstractContentValidator {
 
-    private static final Pattern TEMPLATE_VARIABLE_PATTERN = Pattern.compile("\\{\\{(\\w+)\\}\\}");
+
     private static final List<String> VALID_VARIABLE_TYPES = Arrays.asList(
             "string", "integer", "number", "boolean", "array", "object");
 
@@ -171,15 +171,14 @@ public class PromptTemplateContentValidator extends AbstractContentValidator {
     }
 
     public static List<String> extractTemplateVariables(String template) {
-        List<String> variables = new ArrayList<>();
-        Matcher matcher = TEMPLATE_VARIABLE_PATTERN.matcher(template);
-        while (matcher.find()) {
-            String varName = matcher.group(1);
-            if (!variables.contains(varName)) {
-                variables.add(varName);
+        List<String> variables = PromptTemplateUtil.extractVariables(template);
+        List<String> uniqueVars = new ArrayList<>();
+        for (String var : variables) {
+            if (!uniqueVars.contains(var)) {
+                uniqueVars.add(var);
             }
         }
-        return variables;
+        return uniqueVars;
     }
 
     @Override

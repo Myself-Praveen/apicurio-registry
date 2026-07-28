@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 @ApplicationScoped
 public class PromptTemplateConverter {
 
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{(\\w+)\\}\\}");
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{([^}]+)\\}\\}");
     private static final Pattern IF_BLOCK_PATTERN = Pattern.compile("\\{\\{#if\\s+(\\w+)\\}\\}([\\s\\S]*?)\\{\\{/if\\}\\}");
 
     @Inject
@@ -437,11 +437,21 @@ public class PromptTemplateConverter {
         String rendered = template;
 
         // Simple {{variable}} substitution
-        for (Map.Entry<String, Object> entry : args.entrySet()) {
-            String placeholder = "\\{\\{" + entry.getKey() + "\\}\\}";
-            String value = entry.getValue() != null ? String.valueOf(entry.getValue()) : "";
-            rendered = rendered.replaceAll(placeholder, Matcher.quoteReplacement(value));
+        Matcher matcher = VARIABLE_PATTERN.matcher(rendered);
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String varName = matcher.group(1).trim();
+            Object value = args.get(varName);
+            String replacement;
+            if (value != null) {
+                replacement = String.valueOf(value);
+            } else {
+                replacement = matcher.group(0);
+            }
+            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
         }
+        matcher.appendTail(result);
+        rendered = result.toString();
 
         // Handle {{#if variable}} ... {{/if}} blocks
         rendered = processConditionalBlocks(rendered, args);
